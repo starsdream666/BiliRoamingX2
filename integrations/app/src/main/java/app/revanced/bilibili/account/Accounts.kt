@@ -163,7 +163,7 @@ object Accounts {
             Themes.unloadLoadEquip()
             Toasts.showLongWithId("biliroaming_theme_closed_by_account")
         }
-        showAlertDialog()
+        showBRBDialog()
     }
 
     @JvmStatic
