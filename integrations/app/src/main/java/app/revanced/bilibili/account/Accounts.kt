@@ -18,7 +18,7 @@ import app.revanced.bilibili.utils.*
 import java.io.File
 import java.io.RandomAccessFile
 import java.nio.channels.FileChannel
-import android.gesture.GestureDetector
+import java.nio.charset.Charset
 
 object Accounts {
 
@@ -43,10 +43,6 @@ object Accounts {
     private val cachePrefs: SharedPreferences by lazy {
         Utils.getContext().getSharedPreferences("app_revanced_bili_bili_account", Context.MODE_PRIVATE)
     }
-
-    @JvmStatic
-    var userBlocked = cachePrefs.getBoolean("user_blocked_$mid", false)
-        private set
 
     @JvmStatic
     val cookieSESSDATA get() = get()?.cookie?.cookies?.find { it.name == "SESSDATA" }?.value.orEmpty()
@@ -80,7 +76,7 @@ object Accounts {
 
     @JvmStatic
     fun getInfo(): AccountInfo? {
-        val mid = mid
+        val mid = this.mid
         if (mid == 0L) return null
         if (accountInfoCache == null) {
             synchronized(this) {
@@ -111,8 +107,8 @@ object Accounts {
             } else null
             if (!account.isNullOrEmpty() && !cookie.isNullOrEmpty()) {
                 val accountInfo = biliAesDecrypt(account.base64Decode)
-                    .toString(Charsets.UTF_8).fromJson<AccessToken>()
-                val cookieInfo = cookie.base64Decode.toString(Charsets.UTF_8)
+                    .toString(Charset.defaultCharset()).fromJson<AccessToken>()
+                val cookieInfo = cookie.base64Decode.toString(Charset.defaultCharset())
                     .fromJson<CookieInfo>()
                 Account(accountInfo, cookieInfo)
             } else null
@@ -128,7 +124,7 @@ object Accounts {
             val length = file.length()
             channel.lock(0L, length, true).use {
                 val buffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, length)
-                ByteArray(length.toInt()).apply { buffer.get(this) }.toString(Charsets.UTF_8)
+                ByteArray(length.toInt()).apply { buffer.get(this) }.toString(Charset.defaultCharset())
             }
         }
     }
@@ -176,15 +172,10 @@ object Accounts {
 
     @JvmStatic
     private var dialogShowing = false
-    private var dialogDismissed: Boolean
-        get() = cachePrefs.getBoolean("dialog_dismissed", false)
-        set(value) {
-            cachePrefs.edit().putBoolean("dialog_dismissed", value).apply()
-        }
 
     @JvmStatic
     private fun showBRBDialog() {
-        if (!dialogShowing && !dialogDismissed) {
+        if (!dialogShowing) {
             dialogShowing = true
             Utils.runOnMainThread {
                 val topActivity = ApplicationDelegate.getTopActivity()
@@ -203,20 +194,6 @@ object Accounts {
                             setCanceledOnTouchOutside(false)
                             onDismiss { dialogShowing = false }
                         }
-                    dialog.setOnShowListener {
-                        val title = dialog.setTitle("漫游账户已被封禁")
-                        title?.setOnClickListener(View.OnClickListener { view ->
-                            val mGestureDetector = GestureDetector(topActivity, object : GestureDetector.SimpleOnGestureListener() {
-                                override fun onDoubleTap(e: MotionEvent): Boolean {
-                                    dialogShowing = false
-                                    dialog.dismiss()
-                                    dialogDismissed = true
-                                    return true
-                                }
-                            })
-                            mGestureDetector.onTouchEvent(e)
-                        })
-                    }
                     dialog.show()
                 }
             }
