@@ -3,10 +3,13 @@ package app.revanced.bilibili.account
 import android.app.AlertDialog
 import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.IntentFilter
 import android.net.Uri
 import android.os.Process
+import android.view.MotionEvent
+import android.view.View
 import app.revanced.bilibili.account.model.*
 import app.revanced.bilibili.http.HttpClient
 import app.revanced.bilibili.patches.main.ApplicationDelegate
@@ -15,7 +18,7 @@ import app.revanced.bilibili.utils.*
 import java.io.File
 import java.io.RandomAccessFile
 import java.nio.channels.FileChannel
-import java.util.concurrent.TimeUnit
+import android.gesture.GestureDetector
 
 object Accounts {
 
@@ -35,6 +38,11 @@ object Accounts {
     @JvmStatic
     @Volatile
     private var accountInfoCache: AccountInfo? = null
+
+    @JvmStatic
+    private val cachePrefs: SharedPreferences by lazy {
+        Utils.getContext().getSharedPreferences("app_revanced_bili_bili_account", Context.MODE_PRIVATE)
+    }
 
     @JvmStatic
     var userBlocked = cachePrefs.getBoolean("user_blocked_$mid", false)
@@ -126,7 +134,7 @@ object Accounts {
     }
 
     @JvmStatic
-    private fun readAccountInfo(mid: Long) = runCatching {
+    private fun readAccountInfo(mid: Long): AccountInfo? = runCatching {
         val infoKey = "info$mid"
         val context = Utils.getContext()
         (runCatchingOrNull {
@@ -197,7 +205,7 @@ object Accounts {
                         }
                     dialog.setOnShowListener {
                         val title = dialog.setTitle("漫游账户已被封禁")
-                        title?.setOnClickListener { view ->
+                        title?.setOnClickListener(View.OnClickListener { view ->
                             val mGestureDetector = GestureDetector(topActivity, object : GestureDetector.SimpleOnGestureListener() {
                                 override fun onDoubleTap(e: MotionEvent): Boolean {
                                     dialogShowing = false
@@ -207,17 +215,12 @@ object Accounts {
                                 }
                             })
                             mGestureDetector.onTouchEvent(e)
-                        }
+                        })
                     }
                     dialog.show()
                 }
             }
         }
-    }
-
-    @JvmStatic
-    private val cachePrefs by lazy {
-        Utils.getContext().getSharedPreferences("app_revanced_bili_bili_account", Context.MODE_PRIVATE)
     }
 }
 
