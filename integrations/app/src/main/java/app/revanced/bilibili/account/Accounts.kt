@@ -163,34 +163,61 @@ object Accounts {
             Themes.unloadLoadEquip()
             Toasts.showLongWithId("biliroaming_theme_closed_by_account")
         }
-        showBRBDialog()
+        showAlertDialog()
     }
 
     @JvmStatic
     private var dialogShowing = false
+    private var dialogDismissed: Boolean
+        get() = cachePrefs.getBoolean("dialog_dismissed", false)
+        set(value) {
+            cachePrefs.edit().putBoolean("dialog_dismissed", value).apply()
+        }
 
     @JvmStatic
     private fun showBRBDialog() {
-        if (!dialogShowing) {
+        if (!dialogShowing && !dialogDismissed) {
             dialogShowing = true
             Utils.runOnMainThread {
                 val topActivity = ApplicationDelegate.getTopActivity()
                 if (topActivity != null) {
-                    AlertDialog.Builder(topActivity)
-                        .setTitle("Account Blocked")
-                        .setMessage("Your account has been officially banned by Roaming. Please close this app and use the original version")
-                        .setNegativeButton("Got it", null)
-                        .setPositiveButton("View Reason") { _, _ ->
+                    val dialog = AlertDialog.Builder(topActivity)
+                        .setTitle("漫游账户已被封禁")
+                        .setMessage("Your account has been officially banned by Roaming. Please close this app and use the original version. \nby TG@bbx_show")
+                        .setNegativeButton("OK", DialogInterface.OnClickListener { dialogInterface, i ->
+                            topActivity.finish()
+                        })
+                        .setPositiveButton("封禁原因") { _, _ ->
                             val uri = Uri.parse("https://t.me/BiliRoamingServerBlacklistLog")
                             topActivity.startActivity(Intent(Intent.ACTION_VIEW, uri))
                         }.create().apply {
-                            setCancelable(true)
-                            setCanceledOnTouchOutside(true)
+                            setCancelable(false)
+                            setCanceledOnTouchOutside(false)
                             onDismiss { dialogShowing = false }
-                        }.show()
+                        }
+                    dialog.setOnShowListener {
+                        val title = dialog.setTitle("漫游账户已被封禁")
+                        title?.setOnClickListener { view ->
+                            val mGestureDetector = GestureDetector(topActivity, object : GestureDetector.SimpleOnGestureListener() {
+                                override fun onDoubleTap(e: MotionEvent): Boolean {
+                                    dialogShowing = false
+                                    dialog.dismiss()
+                                    dialogDismissed = true
+                                    return true
+                                }
+                            })
+                            mGestureDetector.onTouchEvent(e)
+                        }
+                    }
+                    dialog.show()
                 }
             }
         }
+    }
+
+    @JvmStatic
+    private val cachePrefs by lazy {
+        Utils.getContext().getSharedPreferences("app_revanced_bili_bili_account", Context.MODE_PRIVATE)
     }
 }
 
