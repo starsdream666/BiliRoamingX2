@@ -154,7 +154,6 @@ object Accounts {
         if (isSignOut) {
             accountCache = null
             accountInfoCache = null
-            userBlocked = false
         } else if (!isUpdateAccount) {
             accountCache = null
             Utils.async { get() }
