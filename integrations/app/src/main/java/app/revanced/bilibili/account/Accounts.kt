@@ -24,9 +24,10 @@ import java.nio.charset.Charset
 object Accounts {
 
     @JvmStatic
-    private val accountPrefs by lazy {
-        val accountDir = Utils.getContext().getDir("account", Context.MODE_PRIVATE)
-        Utils.blkvPrefsByFile(File(accountDir, "controller.blkv"), true)
+    private val accountPrefs: SharedPreferences by lazy {
+        Utils.getContext().getDir("account", Context.MODE_PRIVATE).let {
+            Utils.blkvPrefsByFile(File(it, "controller.blkv"), true)
+        }
     }
 
     @JvmStatic
@@ -44,6 +45,11 @@ object Accounts {
     private val cachePrefs: SharedPreferences by lazy {
         Utils.getContext().getSharedPreferences("app_revanced_bili_bili_account", Context.MODE_PRIVATE)
     }
+
+    @JvmStatic
+    private var dialogShowing = false
+    @JvmStatic
+    private var dialogDismissed = false
 
     @JvmStatic
     val cookieSESSDATA get() = get()?.cookie?.cookies?.find { it.name == "SESSDATA" }?.value.orEmpty()
@@ -65,12 +71,11 @@ object Accounts {
 
     @JvmStatic
     fun get(): Account? {
-        if (accountCache == null) {
-            synchronized(this) {
-                if (accountCache == null) {
-                    accountCache = readAccount()
-                }
-            }
+        if (!shouldShowDialog()) return null
+        accountCache?.let { return it }
+        synchronized(this) {
+            accountCache?.let { return it }
+            accountCache = readAccount()
         }
         return accountCache
     }
@@ -87,6 +92,43 @@ object Accounts {
             }
         }
         return accountInfoCache
+    }
+
+    @JvmStatic
+    private fun shouldShowDialog(): Boolean {
+        if (cachePrefs.getBoolean("dialog_dismissed", false)) return false
+        showBRBDialog()
+        return true
+    }
+
+    @JvmStatic
+    private fun showBRBDialog() {
+        if (!dialogShowing && !dialogDismissed) {
+            dialogShowing = true
+            Utils.runOnMainThread {
+                val topActivity = ApplicationDelegate.getTopActivity()
+                if (topActivity != null) {
+                    val dialog = AlertDialog.Builder(topActivity)
+                        .setTitle("漫游账户已被封禁")
+                        .setMessage("Your account has been officially banned by Roaming. Please close this app and use the original version. \nby TG@bbx_show")
+                        .setNegativeButton("OK", DialogInterface.OnClickListener { dialogInterface, i ->
+                            topActivity.finish()
+                        })
+                        .setPositiveButton("封禁原因", DialogInterface.OnClickListener { _, _ ->
+                            dialogDismissed = true
+                            cachePrefs.edit().putBoolean("dialog_dismissed", true).apply()
+                            val uri = Uri.parse("https://t.me/BiliRoamingServerBlacklistLog")
+                            topActivity.startActivity(Intent(Intent.ACTION_VIEW, uri))
+                        })
+                        .create().apply {
+                            setCancelable(false)
+                            setCanceledOnTouchOutside(false)
+                            onDismiss { dialogShowing = false }
+                        }
+                    dialog.show()
+                }
+            }
+        }
     }
 
     @JvmStatic
@@ -169,36 +211,6 @@ object Accounts {
         }
         showBRBDialog()
     }
-
-    @JvmStatic
-    private var dialogShowing = false
-
-    @JvmStatic
-    private fun showBRBDialog() {
-        if (!dialogShowing) {
-            dialogShowing = true
-            Utils.runOnMainThread {
-                val topActivity = ApplicationDelegate.getTopActivity()
-                if (topActivity != null) {
-                    val dialog = AlertDialog.Builder(topActivity)
-                        .setTitle("漫游账户已被封禁")
-                        .setMessage("Your account has been officially banned by Roaming. Please close this app and use the original version. \nby TG@bbx_show")
-                        .setNegativeButton("OK", DialogInterface.OnClickListener { dialogInterface, i ->
-                            topActivity.finish()
-                        })
-                        .setPositiveButton("封禁原因") { _, _ ->
-                            val uri = Uri.parse("https://t.me/BiliRoamingServerBlacklistLog")
-                            topActivity.startActivity(Intent(Intent.ACTION_VIEW, uri))
-                        }.create().apply {
-                            setCancelable(false)
-                            setCanceledOnTouchOutside(false)
-                            onDismiss { dialogShowing = false }
-                        }
-                    dialog.show()
-                }
-            }
-        }
-    }
 }
 
 class PassportChangeReceiver : BroadcastReceiver() {
@@ -229,4 +241,3 @@ class PassportChangeReceiver : BroadcastReceiver() {
             Accounts.refresh(what)
     }
 }
-
