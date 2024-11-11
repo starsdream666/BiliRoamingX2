@@ -8,8 +8,8 @@ on:
     branches:
       - no
 env:
-  GPR_USER: ${{ secrets.GITHUB_ACTOR }}
-  GPR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GPR_USER: ${{ CrestfallenStars }}
+  GPR_TOKEN: ${{ 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 }}
   
 jobs:
   build:
@@ -25,7 +25,11 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: '17'  # 使用 Java 17，因为 Android Gradle 插件需要该版本
-
+      - name: Set up Authentication for GitHub Packages
+        run: echo "//maven.pkg.github.com/revanced/registry/app/revanced/revanced-patcher/19.3.1/revanced-patcher-19.3.1.pom" > ~/.gradle/gradle.properties
+        env:
+          GITHUB_TOKEN: ${{ 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 }}
+          
       - name: Cache Gradle packages
         uses: actions/cache@v2
         with:
