@@ -7,9 +7,6 @@ on:
   pull_request:
     branches:
       - no
-env:
-  GPR_USER: ${{ CrestfallenStars }}
-  GPR_TOKEN: ${{ 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 }}
   
 jobs:
   build:
