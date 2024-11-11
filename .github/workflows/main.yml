@@ -60,7 +60,7 @@ jobs:
       - name: Patch APK using Revanced CLI
         run: |
           cd build
-          java -jar revanced-cli.jar patch --merge BiliRoamingX-integrations-1.23.3.apk --patch-bundle BiliRoamingX-patches-1.23.3.jar --signing-levels 1,2,3 tv.danmaku.bili_8.16.0-8160400_minAPI23(arm64-v8a)(nodpi)_apkmirror.com.apk
+          java -jar revanced-cli.jar patch --merge BiliRoamingX-integrations-1.23.3.apk --patch-bundle BiliRoamingX-patches-1.23.3.jar --signing-levels 1,2,3 bilibili.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v3
