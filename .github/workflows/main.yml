@@ -55,7 +55,7 @@ jobs:
 
       - name: Download Revanced CLI
         run: |
-          curl -L -o build/revanced-cli.jar https://github.com/ReVanced/revanced-cli/releases/download/v4.6.0.1/revanced-cli.jar
+          curl -L -o build/revanced-cli.jar https://github.com/zjns/revanced-cli/releases/download/v4.6.0.1/revanced-cli.jar
 
       - name: Patch APK using Revanced CLI
         run: |
