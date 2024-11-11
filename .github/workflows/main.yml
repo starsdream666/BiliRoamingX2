@@ -7,7 +7,10 @@ on:
   pull_request:
     branches:
       - no
-
+env:
+  GPR_USER: ${{ secrets.GITHUB_ACTOR }}
+  GPR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  
 jobs:
   build:
     runs-on: ubuntu-latest
