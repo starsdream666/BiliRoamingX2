@@ -22,15 +22,7 @@ allprojects {
 val gprUser: String? = System.getenv("GPR_USER")
 val gprToken: String? = System.getenv("GPR_TOKEN")
 
-repositories {
-    maven {
-        url = uri("https://maven.pkg.github.com/revanced/registry")
-        credentials {
-            username = gprUser ?: "your-default-username"
-            password = gprToken ?: "your-default-token"
-        }
-    }
-}
+
 tasks.register<Delete>("clean") {
     group = "build"
     delete(layout.buildDirectory)
