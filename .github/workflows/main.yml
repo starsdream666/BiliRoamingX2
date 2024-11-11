@@ -14,7 +14,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
         with:
           submodules: recursive  # 同时检出子模块
 
@@ -41,7 +41,7 @@ jobs:
         run: ./gradlew dist  # 使用 `./gradlew dist` 命令编译 APK
 
       - name: Upload APK artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: BiliRoamingX-APK
           path: app/build/outputs/apk/release/*.apk
