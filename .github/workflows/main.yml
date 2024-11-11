@@ -49,6 +49,19 @@ jobs:
       - name: Build APK
         run: ./gradlew dist  # 使用 `./gradlew dist` 命令编译 APK
 
+      - name: Download bilibili.apk
+        run: |
+          curl -L -o build/bilibili.apk "https://an2a-file-share-down-1.file.samsungcloud.com/file/v2/blobs/5f9377a0a08111ef947c0229703d89c0/signed?signature=HBtFi8BJ6qwcB1iEH1TOXn6atpmfw2EST01YTT8fnAF6mv4oDtxyb1v_dJ7hpoNpqVraznYgKAtGKY_9Gjzz_ndCeLgzz6GR7OXFpyYfJGI1XrZpmxnissY96IltHNHgEw9Y4Q_JtBYbF_lwF6_94h7Ro69jzXwAeGjgyngx49iciJ-9Fefd75_vpdPq-dU4olp2Pfqb4nQYBzLiQux_ijlf1xNHLuSDH-x_tbvoYmHh3JD6xLPJT9eXJr3DlHCaz1qihQrk2NXhXpDzUtguaWxcc0Y1JzWwfyhEBiVa34eq5VqFDFMSSdu7cZTIvQO_wTLvKKsD4t-dnvrJeVX8D6D4w_rSL8oZHV3hSP3dH2c&v=1755415235&cid=A411ZXFWwq&name=tv.danmaku.bili_8.16.0-8160400_minAPI23(arm64-v8a)(nodpi)_apkmirror.com.apk"
+
+      - name: Download Revanced CLI
+        run: |
+          curl -L -o build/revanced-cli.jar https://github.com/ReVanced/revanced-cli/releases/download/v4.6.0.1/revanced-cli.jar
+
+      - name: Patch APK using Revanced CLI
+        run: |
+          cd build
+          java -jar revanced-cli.jar patch --merge BiliRoamingX-integrations-1.23.3.apk --patch-bundle BiliRoamingX-patches-1.23.3.jar --signing-levels 1,2,3 tv.danmaku.bili_8.16.0-8160400_minAPI23(arm64-v8a)(nodpi)_apkmirror.com.apk
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v3
         with:
